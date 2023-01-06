@@ -4,7 +4,8 @@ from Tickable import Tickable
 
 class Task(Tickable):
     def __init__(self, exec_id, proc_time: int):
-        self.resources: list[str] = []
+        self.resources_needed: list[str] = []
+        self.resources_used: list[str] = []
         self.proc_time: int = proc_time
         self.time_til_done: int = self.proc_time
         self.released: bool = False
@@ -15,7 +16,7 @@ class Task(Tickable):
 
     def release(self, mes: MES):
         self.released = True
-        for rsrc_id in self.resources:
+        for rsrc_id in self.resources_needed:
             mes.resource_push(rsrc_id, self.task_id)
 
     def summary(self, clock: int) -> str:
@@ -23,7 +24,7 @@ class Task(Tickable):
 
     def tick(self, mes: MES, clock: int):
         dec_flag = True
-        for rsrc_id in self.resources:
+        for rsrc_id in self.resources_needed:
             if self.task_id not in mes.resources[rsrc_id].current:
                 dec_flag = False
                 break
@@ -34,6 +35,9 @@ class Task(Tickable):
                     self.start_stamp = clock
             elif self.released:
                 self.wait_time += 1
+        elif self.time_til_done == 0:
+            for rsrc_id in self.resources_used:
+
 
     def set_id(self, action: str):
         self.task_id = f"{self.exec_id}_{action}"
@@ -71,6 +75,17 @@ class Store(Task):
         self.set_id("store")
         self.resources = ["robot"]
 
+
+# class Pickup(Task):
+#     def __init__(self, exec_id, proc_time: int = 1):
+#         super().__init__(exec_id, proc_time)
+#         self.set_id("pickup")
+#         self.resources_needed = ["robot"]
+#
+#     def tick(self, mes: MES, clock: int):
+#         super().tick(mes, clock)
+#
+#
 
 class Assemble(Task):
     def __init__(self, exec_id, part_list: list, proc_time: int = 13):

@@ -10,10 +10,10 @@ class MESTest:
         self.rsrc()
         self.execs(num_parts=10,
                    print_time_min=4,
-                   print_time_max=12)
+                   print_time_max=4)
 
     def rsrc(self):
-        self.mes.resources["printer"] = Printer(3)
+        self.mes.resources["printer"] = Printer(1)
         self.mes.resources["robot"] = Robot(1)
         self.mes.resources["qi"] = InspectionStation(1)
 

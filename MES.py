@@ -3,7 +3,7 @@ class MES:
     This is a class for representing the entire management execution system.
 
     Attributes:
-        resources (dict): Holds the system resources and their ids
+        resources (dict): Holds the system resources_needed and their ids
         executables (dict): Holds the system executables (jobs and tasks) and their ids
     """
 
@@ -21,13 +21,14 @@ class MES:
         :param clock: Integer to represent where time is up to
         :return: None
         """
+
         # Looping the executables and their tasks
         for executable in self.executables.values():
             executable.tick(self, clock)
             for task in executable.tasks:
                 task.tick(self, clock)
 
-        # Looping the resources
+        # Looping the resources_needed
         for resource in self.resources.values():
             resource.tick(self, clock)
 
@@ -52,6 +53,12 @@ class MES:
             return self.executables[exec_id].task_lookup(task_id)
         except Exception as e:
             print(e)
+
+    def resource_lookup(self, rsrc_id: str):
+        for manager in self.resources.values():
+            for resource in manager.resources:
+                if resource.rsrc_id == rsrc_id:
+                    return resource
 
     def check_pickup(self, id_to_check):
         exec_id = self.task_lookup(id_to_check).exec_id

@@ -1,39 +1,21 @@
 from MES import MES
+from Resource import Resource
 from Tickable import Tickable
 
 
 class ResourceManager(Tickable):
-    """
-    Parent class to represent the manufacturing resources (or a group of resources) in the system (the machines).
-    Attributes:
-        current (list[str]): list of task_ids corresponding to the task each unit of the machine group is working on.
-            e.g. ["part0_print", "part1_print", "part2_print"] would be the current list for a 3 printer system with
-            part0 on printer0, part1 on printer1 and part2 on printer2
-        busy: (list[bool]): list to represent whether units are busy or not.
-    """
-
-    def __init__(self, no_units: int):
-        self.current: list[str] = ["" for _ in range(no_units)]  # Replace this with actual Unit classes
-        self.busy = [False for _ in range(no_units)]  # This no longer needs to exist, just poll the Unit classes
+    def __init__(self, no_units: int, rsrc_type: str):
+        self.resources: list[Resource] = []
         self.queue: list[str] = []
-        self.rsrc_type: str = ""
+        self.rsrc_type: str = rsrc_type
         self.no_units = no_units
 
-    def tick(self, mes: MES, clock: int):
+    def set_up_resources(self):
         for i in range(self.no_units):
-            if not self.busy[i]:
-                self.current[i] = self.grab_next(mes, clock)
-                if self.current[i] is not None:
-                    self.busy[i] = True
-                    print(f"Time: {clock}\t{self.rsrc_type}{i} starting {self.current[i]}")
-            elif mes.task_lookup(self.current[i]).done():
-                if mes.check_pickup(self.current[i]):  # Making sure part has been picked up before setting to not busy
-                    print(f"Time: {clock}\t{self.current[i]} is done on {self.rsrc_type}{i}.")
-                    self.busy[i] = False
-                else:
-                    print(f"Time: {clock}\t{self.current[i]} is waiting for pickup on {self.rsrc_type}{i}.")
-            else:
-                print(self.summary(clock, i))
+            self.resources.append(Resource(f"{self.rsrc_type}{i}"))
+
+    def tick(self, mes: MES, clock: int):  # You can write one of these for each of the subclasses, they're different
+        pass
 
     # Definitely can override this method in the subclasses to better optimise
     def grab_next(self, mes: MES, clock: int) -> str:  # May need the mes and the clock in the future for optimisation
@@ -41,31 +23,32 @@ class ResourceManager(Tickable):
             return self.queue.pop(0)
 
     def summary(self, clock: int, unit: int) -> str:
-        return f"Time: {clock}\t{self.rsrc_type}{unit} working on {self.current[unit]}"
+        pass
+
+
 
 
 class Printer(ResourceManager):
     def __init__(self, no_units: int):
-        self.rsrc_type = "printer"
-        super().__init__(no_units)
+        super().__init__(no_units, "printer")
 
-    # def tick(self, mes: MES, clock: int):
-    #     super().tick(mes, clock)
-    #     for i in range(self.no_units):
-    #         if self.current[i] not in mes.resources["robot"].current and not self.busy[i]:
-    #             print(f"Time: {clock}\t{self.rsrc_type}{i} waiting for robot to pick up {self.current[i]}")
-    #             self.busy[i] = True
+    def tick(self, mes: MES, clock: int):
+        for printer in self.resources:
+            if printer.ready:
+                printer.task_id = self.grab_next(mes, clock)
+                mes.task_lookup(printer.task_id).resources_used.append(printer.rsrc_id)
+                print(f"Time: {clock}\t{printer.task_id} started printing on {printer.rsrc_id}")
+            elif printer.end:
+                print(f"Time: {clock}\t{printer.task_id} waiting for robot pickup on {printer.rsrc_id}")
+            else:
+                print(f"Time: {clock}\t{printer.task_id} being printed on {printer.rsrc_id}")
 
 
 class Robot(ResourceManager):
     def __init__(self, no_units: int):
-        self.robot = "robot"
-        super().__init__(no_units)
+        super().__init__(no_units, "robot")
 
 
 class InspectionStation(ResourceManager):
     def __init__(self, no_units: int):
-        self.rsrc_type = "qi"
-        super().__init__(no_units)
-
-
+        super().__init__(no_units, "qi")
