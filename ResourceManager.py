@@ -26,8 +26,6 @@ class ResourceManager(Tickable):
         pass
 
 
-
-
 class Printer(ResourceManager):
     def __init__(self, no_units: int):
         super().__init__(no_units, "printer")

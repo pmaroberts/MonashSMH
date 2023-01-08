@@ -10,8 +10,6 @@ class Resource:
     def busy(self) -> bool:
         return self.task_id != ""
 
-    def
-
 
 class Printer(Resource):
     def __init__(self, rsrc_id: str):
