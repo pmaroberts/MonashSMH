@@ -8,10 +8,11 @@ class Task(Tickable):
         self.resources_used: list[str] = []
         self.proc_time: int = proc_time
         self.time_til_done: int = self.proc_time
+        self.done: bool = False
         self.released: bool = False
         self.exec_id = exec_id
         self.task_id = ""
-        self.wait_time = -1
+        self.wait_time = 0
         self.start_stamp = None
 
     def release(self, mes: MES):
@@ -25,19 +26,15 @@ class Task(Tickable):
     def tick(self, mes: MES, clock: int):
         dec_flag = True
         for rsrc_id in self.resources_needed:
-            if self.task_id not in mes.resources[rsrc_id].current:
+            if self.task_id not in mes.resources[rsrc_id].current():
                 dec_flag = False
                 break
-        if self.time_til_done != 0:
-            if dec_flag:
-                self.time_til_done -= 1
-                if self.start_stamp is None:
-                    self.start_stamp = clock
-            elif self.released:
-                self.wait_time += 1
-        elif self.time_til_done == 0:
-            for rsrc_id in self.resources_used:
-
+        if dec_flag:
+            self.time_til_done -= 1
+            if self.start_stamp is None:
+                self.start_stamp = clock
+        elif self.released:
+            self.wait_time += 1
 
     def set_id(self, action: str):
         self.task_id = f"{self.exec_id}_{action}"
@@ -48,14 +45,21 @@ class Task(Tickable):
     def started(self) -> bool:
         return self.start_stamp is not None
 
-    def done(self) -> bool:
-        return self.time_til_done == 0
+    def is_done(self) -> bool:
+        return self.done
+
+    def set_done(self, mes: MES, clock: int):
+        self.done = True
+        # Release your resources lol
+        for rsrc_id in self.resources_used:
+            mes.resource_release(rsrc_id)
+        mes.executables[self.exec_id].tick(mes, clock)
 
 
 class Print(Task):
     def __init__(self, exec_id, proc_time):
         super().__init__(exec_id, proc_time)
-        self.resources = ["printer"]
+        self.resources_needed = ["printer"]
         self.set_id("print")
 
     # def summary(self, clock: int) -> str:  # Potentially to delete
@@ -66,14 +70,14 @@ class QI(Task):
     def __init__(self, exec_id, proc_time: int = 5):
         super().__init__(exec_id, proc_time)
         self.set_id("qi")
-        self.resources = ["qi", "robot"]
+        self.resources_needed = ["qi", "robot"]
 
 
 class Store(Task):
     def __init__(self, exec_id, proc_time: int = 3):
         super().__init__(exec_id, proc_time)
         self.set_id("store")
-        self.resources = ["robot"]
+        self.resources_needed = ["robot"]
 
 
 # class Pickup(Task):
@@ -91,7 +95,7 @@ class Assemble(Task):
     def __init__(self, exec_id, part_list: list, proc_time: int = 13):
         super().__init__(exec_id, 2 * len(part_list))
         self.set_id("assemble")
-        self.resources = ["robot"]
+        self.resources_needed = ["robot"]
         self.part_list = part_list
 
     def release(self, mes: MES):

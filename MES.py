@@ -21,7 +21,7 @@ class MES:
         :param clock: Integer to represent where time is up to
         :return: None
         """
-
+        # print(f"\t\t\t CLOCK IS {clock}")
         # Looping the executables and their tasks
         for executable in self.executables.values():
             executable.tick(self, clock)
@@ -41,13 +41,19 @@ class MES:
         """
         self.resources[rsrc_id].queue.append(task_id)
 
+    def resource_release(self, rsrc_id: str):
+        self.resource_lookup(rsrc_id).upon_task_completion()
+
     def task_lookup(self, task_id: str):
         """
         This method allows other classes to search for tasks via their id
         :param task_id: task id of the sought after task
         :return: the task object itself
         """
-        id_split = task_id.split('_')
+        try:
+            id_split = task_id.split('_')
+        except AttributeError:
+            return None
         exec_id = id_split[0]
         try:
             return self.executables[exec_id].task_lookup(task_id)
@@ -59,16 +65,6 @@ class MES:
             for resource in manager.resources:
                 if resource.rsrc_id == rsrc_id:
                     return resource
-
-    def check_pickup(self, id_to_check):
-        exec_id = self.task_lookup(id_to_check).exec_id
-        for task_id in self.resources["robot"].current:
-            if task_id is None:  # Returns None when the robot has no tasks
-                continue
-            else:
-                if self.task_lookup(task_id).exec_id == exec_id:
-                    return True
-        return False
 
     def report(self) -> str:
         """

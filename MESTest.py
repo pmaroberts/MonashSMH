@@ -13,9 +13,9 @@ class MESTest:
                    print_time_max=4)
 
     def rsrc(self):
-        self.mes.resources["printer"] = Printer(1)
-        self.mes.resources["robot"] = Robot(1)
-        self.mes.resources["qi"] = InspectionStation(1)
+        self.mes.resources["printer"] = PrintManager(1)
+        self.mes.resources["robot"] = RobotManager(1)
+        self.mes.resources["qi"] = QIManager(1)
 
     def execs(self, num_parts, print_time_min, print_time_max):
         random.seed(90210)
@@ -30,4 +30,4 @@ class MESTest:
     def run(self, max_clock: int = 1000):
         for i in range(max_clock):
             self.mes.sys_tick(i)
-        print(self.mes.report())
+        # print(self.mes.report())

@@ -34,13 +34,13 @@ class Executable(Tickable):
         # Note: Tick still runs on methods that are complete (potential improvement)
         if self.up_to == len(self.tasks):
             if self.done_stamp == 0:
-                self.done_stamp = clock - 1  # Executables are marked as done in the tick cycle after they finish
+                self.done_stamp = clock  # Executables are marked as done in the tick cycle after they finish
             return
         # If the current task is not released, release it.
         if not self.tasks[self.up_to].released:
             self.tasks[self.up_to].release(mes)
         # If the current task is done, increment  up to
-        elif self.tasks[self.up_to].time_til_done == 1:
+        elif self.tasks[self.up_to].is_done():
             self.up_to += 1
 
     def task_lookup(self, task_id: str) -> Task:
@@ -67,7 +67,7 @@ class Part(Executable):
         be overridden by database values (approximations from the STL file)
         """
         super().__init__(part_id)
-        self.tasks = [Print(self.exec_id, print_time), QI(self.exec_id), Store(self.exec_id)]
+        self.tasks = [Print(self.exec_id, print_time), Store(self.exec_id), QI(self.exec_id), Store(self.exec_id)]
 
 
 class Job(Executable):
