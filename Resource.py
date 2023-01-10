@@ -1,7 +1,7 @@
 class Resource:
-    def __init__(self, rsrc_id: str, states: list[str]):
+    def __init__(self, rsrc_id: str):
         self.state: int = 0  # All machines should start ready. We can set them to not ready at the start
-        self.states: list[str] = states
+        self.states: list[str] = []
         self.rsrc_id = rsrc_id
         self.task_id = ""
 
@@ -26,20 +26,29 @@ class Resource:
     def upon_task_completion(self):  # Can inherit this method in order to create a cleaning cycle for printer etc.
         self.state = 0
 
+    def part_pickup_handler(self):
+        pass
+
 
 class Printer(Resource):
     def __init__(self, rsrc_id: str):
-        super().__init__(rsrc_id, states=["ready", "printing", "finished printing"])
+        super().__init__(rsrc_id)
+        self.states = ["ready", "printing", "finished printing", "bed empty, not ready"]
 
     def upon_task_completion(self):
         self.state = 2  # Set state to finished printing, not ready. The part is still on the bed
 
+    def part_pickup_handler(self):
+        self.state = 3  # Set state to bed empty, not ready. Robot has picked up the part
+
 
 class Robot(Resource):
     def __init__(self, rsrc_id: str):
-        super().__init__(rsrc_id, states=["ready", "busy", "done"])
+        super().__init__(rsrc_id)
+        self.states = ["ready", "busy", "done"]
 
 
 class InspectionStation(Resource):
     def __init__(self, rsrc_id: str):
-        super().__init__(rsrc_id, states=["ready", "busy", "done", "failed"])
+        super().__init__(rsrc_id)
+        self.states = ["ready", "busy", "done", "failed"]

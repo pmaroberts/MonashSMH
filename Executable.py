@@ -13,6 +13,7 @@ class Executable(Tickable):
         done_stamp (int): a time stamp for when the task completes
         exec_id (str): the tasks id
     """
+
     def __init__(self, exec_id: str):
         """
         Constructor for the Executable class
@@ -38,7 +39,7 @@ class Executable(Tickable):
             return
         # If the current task is not released, release it.
         if not self.tasks[self.up_to].released:
-            self.tasks[self.up_to].release(mes)
+            self.tasks[self.up_to].release(mes, self.up_to)
         # If the current task is done, increment  up to
         elif self.tasks[self.up_to].is_done():
             self.up_to += 1
@@ -58,6 +59,7 @@ class Part(Executable):
     """
     This class is used to represent parts in the system.
     """
+
     def __init__(self, part_id: str, print_time: int = 10):
         """
         Constructor for the Part class. The tasks associated with parts are pre-filled in the task list:
@@ -67,7 +69,7 @@ class Part(Executable):
         be overridden by database values (approximations from the STL file)
         """
         super().__init__(part_id)
-        self.tasks = [Print(self.exec_id, print_time), Store(self.exec_id), QI(self.exec_id), Store(self.exec_id)]
+        self.tasks = [Print(self.exec_id, print_time), Store(self.exec_id, "printer"), QI(self.exec_id), Store(self.exec_id, "qi")]
 
 
 class Job(Executable):
@@ -76,6 +78,7 @@ class Job(Executable):
     Attributes:
         parts (list[str]): List of part ids the job needs to be printed to assemble
     """
+
     def __init__(self, exec_id: str, parts=None):
         """
         Constructor for the Job class
@@ -86,4 +89,4 @@ class Job(Executable):
         if parts is None:
             parts = []
         self.parts = parts
-        self.tasks = [Assemble(self.exec_id, self.parts), Store(self.exec_id)]
+        self.tasks = [Assemble(self.exec_id, self.parts), Finish(self.exec_id)]

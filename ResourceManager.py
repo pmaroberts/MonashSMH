@@ -30,7 +30,8 @@ class ResourceManager(Tickable):
         rsrc.task_id = self.grab_next(mes, clock)
         if rsrc.task_id is not None:
             rsrc.state = 1
-            mes.task_lookup(rsrc.task_id).resources_used.append(rsrc.rsrc_id)
+            new_task = mes.task_lookup(rsrc.task_id)
+            new_task.resources_used.append(rsrc.rsrc_id)
             print(f"Time: {clock}\t{rsrc.task_id} started on {rsrc.rsrc_id}")
 
     def current(self) -> list[str]:
@@ -58,6 +59,8 @@ class PrintManager(ResourceManager):
             elif printer.state == 2:
                 mes.task_lookup(printer.task_id).set_done(mes, clock)
                 print(f"Time: {clock}\t{printer.task_id} waiting for robot pickup on {printer.rsrc_id}")
+            elif printer.state == 3:
+                printer.state = 0  # For now, bed empty is the same as ready.
 
 
 class RobotManager(ResourceManager):
@@ -78,6 +81,15 @@ class RobotManager(ResourceManager):
             elif robot.state == 2:
                 mes.task_lookup(robot.task_id).set_done(mes, clock)
                 print(f"Time: {clock}\t{robot.rsrc_id} is done {robot.task_id}")
+
+    def default_ready_action(self, rsrc: Resource, mes: MES, clock: int):
+        rsrc.task_id = self.grab_next(mes, clock)
+        if rsrc.task_id is not None:
+            rsrc.state = 1
+            new_task = mes.task_lookup(rsrc.task_id)
+            new_task.resources_used.append(rsrc.rsrc_id)
+
+            print(f"Time: {clock}\t{rsrc.task_id} started on {rsrc.rsrc_id}")
 
 
 class QIManager(ResourceManager):
