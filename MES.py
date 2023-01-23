@@ -1,6 +1,6 @@
 class MES:
     """
-    This is a class for representing the entire management execution system.
+    This is a class for representing the entire manufacturing execution system.
 
     Attributes:
         resource_managers (dict): Holds the system resources and their ids

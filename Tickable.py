@@ -9,7 +9,7 @@ class Tickable:
     def tick(self, mes: MES, clock: int):
         """
         Signature for the tick method
-        :param mes: Management Execution System
+        :param mes: manufacturing execution system
         :param clock: Current Time
         :return: None
         """

@@ -27,7 +27,7 @@ class Executable(Tickable):
     def tick(self, mes: MES, clock: int):
         """
         Tick method implementation for executables
-        :param mes: Management Execution System
+        :param mes: manufacturing execution system
         :param clock: Current Time
         :return: None
         """
