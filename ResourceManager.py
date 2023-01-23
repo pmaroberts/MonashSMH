@@ -8,11 +8,17 @@ class ResourceManager(Tickable):
     This abstract class represents a resource manager. A resource manager holds a collection of an individual resource
     and allocates tasks to each resource.
     For example, a PrintManager has a collection of Printers and allocates Tasks to those printers.
+
+    Attributes:
+        resources (list[Resource]): a list of resources that the ResourceManager manages
+        queue (list[str]): a list of task ids. The tasks are queuing for access to the resource.
+        rsrc_type (str): a string for the type of resource (e.g. printer, robot etc)
+        no_units: the number of resources managed.
     """
     def __init__(self, no_units: int, rsrc_type: str):
         """
-
-        :param no_units: the number of units in the manager
+        Constructor for the ResourceManager
+        :param no_units: the number of resources managed
         :param rsrc_type: a string for the type of resource (e.g. printer, robot etc)
         """
         self.resources: list[Resource] = []

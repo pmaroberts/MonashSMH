@@ -5,12 +5,15 @@ import random
 
 
 class MESTest:
+    """
+    This is a driver class for the MES system, allowing for testing and development.
+    """
     def __init__(self):
         self.mes = MES()
         self.rsrc()
-        self.execs(num_parts=2,
-                   print_time_min=4,
-                   print_time_max=4)
+        self.execs(num_parts=10,
+                   print_time_min=3,
+                   print_time_max=12)
 
     def rsrc(self):
         self.mes.resource_managers["printer"] = PrintManager(1)
@@ -24,8 +27,8 @@ class MESTest:
             self.mes.executables[i_d] = Part(i_d, print_time=random.randint(print_time_min, print_time_max))
 
         self.mes.executables["job1"] = Job("job1", [f"part{i}" for i in range(2)])
-        #self.mes.executables["job2"] = Job("job2", [f"part{i}" for i in range(3, 4)])
-        #self.mes.executables["job3"] = Job("job3", [f"part{i}" for i in range(4, 10)])
+        self.mes.executables["job2"] = Job("job2", [f"part{i}" for i in range(3, 4)])
+        self.mes.executables["job3"] = Job("job3", [f"part{i}" for i in range(4, 10)])
 
     def run(self, max_clock: int = 1000):
         for i in range(max_clock):
