@@ -26,6 +26,7 @@ class Resource:
         This method allows someone to mimic the OPCUA through the console.
         :return: None
         """
+        # pass
         print(f"\033[1;32m\nSetting state for {self.rsrc_id}. Current state is '{self.states[self.state]}'")
         i: int = 0
         for state in self.states:

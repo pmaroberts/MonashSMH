@@ -1,7 +1,11 @@
+import time
+
 from Executable import Part, Job
 from ResourceManager import *
 from MES import MES
+from GUI import GUI
 import random
+import asyncio
 
 
 class MESTest:
@@ -33,4 +37,7 @@ class MESTest:
     def run(self, max_clock: int = 1000):
         for i in range(max_clock):
             self.mes.sys_tick(i)
+            time.sleep(1)
         # print(self.mes.report())
+
+

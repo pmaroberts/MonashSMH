@@ -1,3 +1,5 @@
+
+
 class MES:
     """
     This is a class for representing the entire manufacturing execution system.
@@ -13,6 +15,9 @@ class MES:
         """
         self.resource_managers: dict = {}
         self.executables: dict = {}
+
+    def sys_gui(self, gui):
+        gui.run()
 
     def sys_tick(self, clock: int):
         """
