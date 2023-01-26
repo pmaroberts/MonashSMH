@@ -16,9 +16,6 @@ class MES:
         self.resource_managers: dict = {}
         self.executables: dict = {}
 
-    def sys_gui(self, gui):
-        gui.run()
-
     def sys_tick(self, clock: int):
         """
         This is the tick method for the MES system. It ensures that each executable, task and resource's tick method is

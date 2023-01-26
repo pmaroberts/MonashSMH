@@ -112,7 +112,7 @@ class PrintManager(ResourceManager):
         :return: None
         """
         for printer in self.resources:
-            printer.set_state()
+            printer.set_state()  # This will change to a get state from the printer.
             if printer.state == 0:
                 self.default_ready_action(printer, mes, clock)
             elif printer.state == 1:
