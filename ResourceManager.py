@@ -15,6 +15,7 @@ class ResourceManager(Tickable):
         rsrc_type (str): a string for the type of resource (e.g. printer, robot etc)
         no_units: the number of resources managed.
     """
+
     def __init__(self, no_units: int, rsrc_type: str):
         """
         Constructor for the ResourceManager
@@ -66,7 +67,7 @@ class ResourceManager(Tickable):
         """
         rsrc.task_id = self.grab_next(mes, clock)
         if rsrc.task_id is not None:
-            rsrc.state = 1
+            rsrc.set_to_default_working_state()
             new_task = mes.task_lookup(rsrc.task_id)
             new_task.resources_used.append(rsrc.rsrc_id)
             print(f"Time: {clock}\t{rsrc.task_id} started on {rsrc.rsrc_id}")
@@ -86,6 +87,7 @@ class PrintManager(ResourceManager):
     """
     PrintManager is a child class of ResourceManager, set up to manage the 3d printers.
     """
+
     def __init__(self, no_units: int):
         super().__init__(no_units, "printer")
 
@@ -95,7 +97,10 @@ class PrintManager(ResourceManager):
         :return: None
         """
         for i in range(self.no_units):
-            self.resources.append(Printer(f"{self.rsrc_type}{i}"))
+            printer = Printer(f"{self.rsrc_type}{i}")
+            printer.state_node = f"ns={11 + i};s=P{i + 1}d_State"
+            printer.state = asyncio.run(OPCUA.get_data(printer.state_node))
+            self.resources.append(printer)
 
     def tick(self, mes: MES, clock: int):
         """
@@ -112,22 +117,21 @@ class PrintManager(ResourceManager):
         :return: None
         """
         for printer in self.resources:
-            printer.set_state()  # This will change to a get state from the printer.
-            if printer.state == 0:
+            printer.get_state()  # This will change to a get state from the printer.
+            if printer.state == "Operational":
                 self.default_ready_action(printer, mes, clock)
-            elif printer.state == 1:
+            elif printer.state == "Printing":
                 print(f"Time: {clock}\t{printer.task_id} being printed on {printer.rsrc_id}")
-            elif printer.state == 2:
+            elif printer.state == "Part on Bed":
                 mes.task_lookup(printer.task_id).set_done(mes, clock)
                 print(f"Time: {clock}\t{printer.task_id} waiting for robot pickup on {printer.rsrc_id}")
-            elif printer.state == 3:
-                printer.state = 0  # For now, bed empty is the same as ready.
 
 
 class RobotManager(ResourceManager):
     """
     RobotManager is a child class of ResourceManager, with the purpose of managing robots.
     """
+
     def __init__(self, no_units: int):
         super().__init__(no_units, "robot")
 
@@ -152,7 +156,7 @@ class RobotManager(ResourceManager):
         :return: None
         """
         for robot in self.resources:
-            robot.set_state()
+            robot.get_state()
             if robot.state == 0:
                 self.default_ready_action(robot, mes, clock)
             elif robot.state == 1:
@@ -166,6 +170,7 @@ class QIManager(ResourceManager):
     """
     This is the child class of ResourceManager to manage Quality Inspection stations
     """
+
     def __init__(self, no_units: int):
         super().__init__(no_units, "qi")
 
@@ -190,7 +195,7 @@ class QIManager(ResourceManager):
         :return: None
         """
         for station in self.resources:
-            station.set_state()
+            station.get_state()
             if station.state == 0:
                 self.default_ready_action(station, mes, clock)
             elif station.state == 1:

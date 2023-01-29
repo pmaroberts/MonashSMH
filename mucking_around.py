@@ -1,24 +1,21 @@
 from Jeffrey_OPCUA import *
 import asyncio
-import nest_asyncio
-
-nest_asyncio.apply()
+from OPCUAInterface import *
 
 
-async def get_some_data(op: Opcua):
-    data = await op.getValue("ns=11;s=P1f_Ready")
-    print(data)
+async def get_some_data():
+    return await OPCUA.get_data("ns=11;s=P1d_State")
 
 
-async def set_some_data(op: Opcua):
-    await op.setValue("ns=11;s=P1f_Ready", True, ua.VariantType.Boolean)
+async def set_some_data():
+    await OPCUA.set_data("ns=11;s=P1d_State", "hi")
 
 
 def main():
-    op = Opcua()
-    asyncio.run(get_some_data(op))
-    asyncio.run(set_some_data(op))
-    asyncio.run(get_some_data(op))
+    data = asyncio.run(get_some_data())
+    asyncio.run(set_some_data())
+
+    print(f"{data} is cool")
 
 
 if __name__ == '__main__':

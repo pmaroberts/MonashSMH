@@ -1,3 +1,6 @@
+from Jeffrey_OPCUA import *
+import asyncio
+import nest_asyncio
 
 
 class MES:
@@ -15,6 +18,7 @@ class MES:
         """
         self.resource_managers: dict = {}
         self.executables: dict = {}
+        self.opcua = None
 
     def sys_tick(self, clock: int):
         """
