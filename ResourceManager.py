@@ -99,7 +99,7 @@ class PrintManager(ResourceManager):
         for i in range(self.no_units):
             printer = Printer(f"{self.rsrc_type}{i}")
             printer.state_node = f"ns={11 + i};s=P{i + 1}d_State"
-            printer.state = asyncio.run(OPCUA.get_data(printer.state_node))
+            asyncio.get_event_loop().run_until_complete(OPCUA.set_data(printer.state_node, printer.state))
             self.resources.append(printer)
 
     def tick(self, mes: MES, clock: int):
@@ -141,7 +141,12 @@ class RobotManager(ResourceManager):
         :return: None
         """
         for i in range(self.no_units):
-            self.resources.append(Robot(f"{self.rsrc_type}{i}"))
+            robot = Robot(f"{self.rsrc_type}{i}")
+            robot.ready_node = f"ns=21;s=R1f_Ready"
+            robot.end_node = f"ns=21;s=R1f_End"
+            robot.start_node = f"ns=21;s=R1c_Start"
+            robot.prog_id_node = f"ns=21;s=R1c_ProgID"
+            self.resources.append(robot)
 
     def tick(self, mes: MES, clock: int):
         """
@@ -157,13 +162,23 @@ class RobotManager(ResourceManager):
         """
         for robot in self.resources:
             robot.get_state()
-            if robot.state == 0:
-                self.default_ready_action(robot, mes, clock)
-            elif robot.state == 1:
+            if robot.state == "Ready":
+                self.default_ready_action(robot, mes, clock)  # This is going to be pushing a program ID
+            elif robot.state == "Busy":
                 print(f"Time: {clock}\t{robot.rsrc_id} working on {robot.task_id}")
-            elif robot.state == 2:
+            elif robot.state == "Done":
                 mes.task_lookup(robot.task_id).set_done(mes, clock)
                 print(f"Time: {clock}\t{robot.rsrc_id} is done {robot.task_id}")
+                asyncio.get_event_loop().run_until_complete(OPCUA.set_data(robot.ready_node, True))
+
+    def default_ready_action(self, rsrc: Resource, mes: MES, clock: int):
+        rsrc.task_id = self.grab_next(mes, clock)
+        if rsrc.task_id is not None:
+            new_task = mes.task_lookup(rsrc.task_id)
+            new_task.resources_used.append(rsrc.rsrc_id)
+            rsrc.prog_id = new_task.robot_prog
+            rsrc.set_to_default_working_state()
+            print(f"Time: {clock}\t{rsrc.task_id} started on {rsrc.rsrc_id}")
 
 
 class QIManager(ResourceManager):

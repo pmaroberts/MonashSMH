@@ -1,6 +1,5 @@
 from Jeffrey_OPCUA import *
 import asyncio
-import nest_asyncio
 
 
 class MES:

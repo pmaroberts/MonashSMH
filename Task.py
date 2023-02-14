@@ -25,6 +25,7 @@ class Task(Tickable):
         start_stamp (int): the time at which the task starts.
         position (int): where the task is in the executable's task list.
     """
+
     def __init__(self, exec_id, proc_time: int):
         """
         Constructor for the task class
@@ -137,35 +138,45 @@ class Task(Tickable):
             mes.resource_release(rsrc_id)
 
 
+class RobotRequester:
+    def __init__(self):
+        self.robot_prog = 0
+
+
 class Print(Task):
     """
     Child of the Task class to represent the Print task.
     """
+
     def __init__(self, exec_id, proc_time):
         super().__init__(exec_id, proc_time)
         self.resources_needed = ["printer"]  # Print task needs a printer
         self.set_id("print")
 
 
-class QI(Task):
+class QI(Task, RobotRequester):
     """
     Child of the Task class to represent the QI task.
     """
+
     def __init__(self, exec_id, proc_time: int = 5):
         super().__init__(exec_id, proc_time)
         self.set_id("qi")
         self.resources_needed = ["qi", "robot"]  # QI task needs a qi station and a robot
+        self.robot_prog = 4
 
 
-class Store(Task):
+class Store(Task, RobotRequester):
     """
     Child of the Task class to represent the Store task.
     """
+
     def __init__(self, exec_id, prev_loc: str, proc_time: int = 3):
         super().__init__(exec_id, proc_time)
         self.set_id("store")
         self.resources_needed = ["robot"]  # Store task needs a robot
         self.prev_loc = prev_loc
+        self.robot_prog = 5
 
     def start_action(self, mes: MES, clock: int):
         """
@@ -183,18 +194,20 @@ class Store(Task):
                 rsrc.part_pickup_handler()
 
 
-class Assemble(Task):
+class Assemble(Task, RobotRequester):
     """
     Class to represent the assembly step.
 
     Attributes:
         part_list: list of part ids of the parts that need to be assembled
     """
+
     def __init__(self, exec_id, part_list: list[str], proc_time: int = 13):
         super().__init__(exec_id, proc_time)
         self.set_id("assemble")
         self.resources_needed = ["robot"]  # We need a robot to assemble
         self.part_list = part_list
+        self.robot_prog = 6
 
     def release(self, mes: MES, position: int):
         """
@@ -215,7 +228,10 @@ class Finish(Task):
     """
     This task class represents moving the completed job to a finished section, ready for customer pickup.
     """
+
     def __init__(self, exec_id, proc_time: int = 3):
         super().__init__(exec_id, proc_time)
         self.set_id("finish")
         self.resources_needed = ["robot"]  # Finish needs a robot to store
+
+

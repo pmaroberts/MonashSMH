@@ -1,5 +1,4 @@
 import asyncio
-import nest_asyncio
 
 from asyncua import Client
 
@@ -29,7 +28,6 @@ class Resource:
         self.states: list[str] = []
         self.rsrc_id = rsrc_id
         self.task_id = ""
-        self.state_node = ""
 
     def get_state(self) -> None:
         """
@@ -87,6 +85,9 @@ class Printer(Resource):
         The constructor sets the states for the printer
         """
         super().__init__(rsrc_id)
+        self.state_node = ""
+        self.state = "Default"
+
         # self.states = ["ready", "printing", "finished printing", "bed empty, not ready"]
 
     def upon_task_completion(self) -> None:
@@ -95,7 +96,7 @@ class Printer(Resource):
         :return: None
         """
         self.state = "Part on Bed"
-        asyncio.run(OPCUA.set_data(self.state_node, self.state))
+        asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.state_node, self.state))
 
     def part_pickup_handler(self) -> None:
         """
@@ -103,15 +104,15 @@ class Printer(Resource):
         :return:
         """
         self.state = "Cleaning Required"
-        asyncio.run(OPCUA.set_data(self.state_node, self.state))
+        asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.state_node, self.state))
 
     def get_state(self) -> None:
-        print(self.state)
-        self.state = asyncio.run(OPCUA.get_data(self.state_node))
-        print(self.state)
+        print(f"{self.rsrc_id} is in state {self.state}")
+        self.state = asyncio.get_event_loop().run_until_complete(OPCUA.get_data(self.state_node))
+        print(f"{self.rsrc_id} now in state {self.state}")
 
     def set_to_default_working_state(self):
-        asyncio.run(OPCUA.set_data(self.state_node, "Printing"))
+        asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.state_node, "Printing"))
 
 
 class Robot(Resource):
@@ -125,7 +126,35 @@ class Robot(Resource):
         :param rsrc_id: Resource id passed through the constructor.
         """
         super().__init__(rsrc_id)
-        self.states = ["ready", "busy", "done"]
+        self.state = "Ready"
+        self.states = ["Ready", "Busy", "Done"]
+        self.ready_node = ""
+        self.end_node = ""
+        self.start_node = ""
+        self.prog_id_node = ""
+        self.prog_id = 69
+
+    def set_to_default_working_state(self):
+        # Use this method to set the program ID
+        self.state = "Busy"
+        asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.start_node, True))
+        asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.prog_id_node, self.prog_id))
+        asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.ready_node, False))
+        asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.end_node, False))
+
+    def get_state(self) -> None:
+        print(f"{self.rsrc_id} is in state {self.state}")
+        ready = asyncio.get_event_loop().run_until_complete(OPCUA.get_data(self.ready_node))
+        end = asyncio.get_event_loop().run_until_complete(OPCUA.get_data(self.end_node))
+        if eval(ready):
+            self.state = "Ready"
+        elif eval(end):
+            self.state = "Done"
+            asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.prog_id_node, self.prog_id))
+        print(f"{self.rsrc_id} is now in state {self.state}")
+
+    def upon_task_completion(self) -> None:
+        self.state = "Default"
 
 
 class InspectionStation(Resource):

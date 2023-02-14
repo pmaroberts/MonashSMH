@@ -1,5 +1,7 @@
-import asyncio
-from asyncua import Client, ua
+import logging
+import sys
+
+from asyncua import Client
 
 
 class OPCUA:
@@ -7,6 +9,7 @@ class OPCUA:
 
     @staticmethod
     async def connector() -> Client:
+        logging.disable(sys.maxsize)  # The API logs a lot of stuff to console
         client = Client(OPCUA.address)
         await client.connect()
         return client

@@ -3,7 +3,6 @@ import time
 from Executable import Part, Job
 from ResourceManager import *
 from MES import MES
-from GUI import GUI
 import random
 import asyncio
 
@@ -21,7 +20,7 @@ class MESTest:
 
     def rsrc(self):
         self.mes.resource_managers["printer"] = PrintManager(1)
-        self.mes.resource_managers["robot"] = RobotManager(2)
+        self.mes.resource_managers["robot"] = RobotManager(1)
         self.mes.resource_managers["qi"] = QIManager(1)
 
     def execs(self, num_parts, print_time_min, print_time_max):
