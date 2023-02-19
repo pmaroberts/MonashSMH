@@ -6,6 +6,7 @@ from asyncua import Client
 
 class OPCUA:
     address = 'oct.tpc://172.31.1.236:4840/server/'
+    #  address = 'opc.tcp://localhost:4840/'
 
     @staticmethod
     async def connector() -> Client:

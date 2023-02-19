@@ -224,7 +224,7 @@ class Assemble(Task, RobotRequester):
         super().release(mes, position)
 
 
-class Finish(Task):
+class Finish(Task, RobotRequester):
     """
     This task class represents moving the completed job to a finished section, ready for customer pickup.
     """
@@ -233,5 +233,6 @@ class Finish(Task):
         super().__init__(exec_id, proc_time)
         self.set_id("finish")
         self.resources_needed = ["robot"]  # Finish needs a robot to store
+        self.robot_prog = 10
 
 

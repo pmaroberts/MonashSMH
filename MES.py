@@ -1,5 +1,6 @@
 from Jeffrey_OPCUA import *
 import asyncio
+from database import CursorFromConnectionPool, Database
 
 
 class MES:
@@ -17,7 +18,6 @@ class MES:
         """
         self.resource_managers: dict = {}
         self.executables: dict = {}
-        self.opcua = None
 
     def sys_tick(self, clock: int):
         """

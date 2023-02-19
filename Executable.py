@@ -1,6 +1,7 @@
 from MES import MES
 from Task import *
 from Tickable import Tickable
+from database import CursorFromConnectionPool
 
 
 class Executable(Tickable):
@@ -14,7 +15,7 @@ class Executable(Tickable):
         exec_id (str): the tasks id
     """
 
-    def __init__(self, exec_id: str):
+    def __init__(self, exec_id: str, db_id: int):
         """
         Constructor for the Executable class
         :param exec_id: the tasks' id
@@ -23,6 +24,7 @@ class Executable(Tickable):
         self.up_to: int = 0
         self.done_stamp: int = 0
         self.exec_id = exec_id
+        self.db_id = db_id
 
     def tick(self, mes: MES, clock: int):
         """
@@ -32,10 +34,11 @@ class Executable(Tickable):
         :return: None
         """
         # If all tasks are complete, record the done timestamp and return (do not continue with the tick)
-        # Note: Tick still runs on methods that are complete (potential improvement)
+        # Note: Tick still runs on execs that are complete (potential improvement)
         if self.up_to == len(self.tasks):
             if self.done_stamp == 0:
                 self.done_stamp = clock  # Executables are marked as done in the tick cycle after they finish
+                self.mark_done_in_db()
             return
         # If the current task is not released, release it.
         if not self.tasks[self.up_to].released:
@@ -54,13 +57,16 @@ class Executable(Tickable):
             if task.task_id == task_id:
                 return task
 
+    def mark_done_in_db(self):
+        pass
+
 
 class Part(Executable):
     """
     This class is used to represent parts in the system.
     """
 
-    def __init__(self, part_id: str, print_time: int = 10):
+    def __init__(self, part_id: int, part_no: int, print_time: int = 10):
         """
         Constructor for the Part class. The tasks associated with parts are pre-filled in the task list:
         Print, Quality Inspect and Store
@@ -68,8 +74,15 @@ class Part(Executable):
         :param print_time: approximation of the print time for the part. Default is 10 for testing, but this value will
         be overridden by database values (approximations from the STL file)
         """
-        super().__init__(part_id)
-        self.tasks = [Print(self.exec_id, print_time), Store(self.exec_id, "printer"), QI(self.exec_id), Store(self.exec_id, "qi")]
+        super().__init__(f"part{part_id}", part_id)
+        self.part_no = part_no
+        self.tasks = [Print(self.exec_id, print_time), Store(self.exec_id, "printer"), QI(self.exec_id),
+                      Store(self.exec_id, "qi")]
+        # self.tasks = [Print(self.exec_id, print_time)]
+
+    def mark_done_in_db(self):
+        with CursorFromConnectionPool() as cursor:
+            cursor.execute(f"UPDATE part SET part_done_stamp = Now() WHERE partid = {self.db_id}")
 
 
 class Job(Executable):
@@ -79,14 +92,18 @@ class Job(Executable):
         parts (list[str]): List of part ids the job needs to be printed to assemble
     """
 
-    def __init__(self, exec_id: str, parts=None):
+    def __init__(self, exec_id: int, parts=None):
         """
         Constructor for the Job class
         :param exec_id: The id for the job (different to the id for the parts in it)
         :param parts: List of part ids that belong to the job
         """
-        super().__init__(exec_id)
+        super().__init__(f"job{exec_id}", exec_id)
         if parts is None:
             parts = []
         self.parts = parts
         self.tasks = [Assemble(self.exec_id, self.parts), Finish(self.exec_id)]
+
+    def mark_done_in_db(self):
+        with CursorFromConnectionPool() as cursor:
+            cursor.execute(f"UPDATE jobs SET job_done_stamp = Now() WHERE jobid = {self.db_id}")
