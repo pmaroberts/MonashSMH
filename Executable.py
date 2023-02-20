@@ -76,13 +76,12 @@ class Part(Executable):
         """
         super().__init__(f"part{part_id}", part_id)
         self.part_no = part_no
-        self.tasks = [Print(self.exec_id, print_time), Store(self.exec_id, "printer"), QI(self.exec_id),
-                      Store(self.exec_id, "qi")]
-        # self.tasks = [Print(self.exec_id, print_time)]
+        # self.tasks = [Print(self.exec_id, print_time), Store(self.exec_id, "printer"), QI(self.exec_id),
+        #               Store(self.exec_id, "qi")]
+        self.tasks = [QI(self.exec_id)]
 
     def mark_done_in_db(self):
-        with CursorFromConnectionPool() as cursor:
-            cursor.execute(f"UPDATE part SET part_done_stamp = Now() WHERE partid = {self.db_id}")
+        pass
 
 
 class Job(Executable):
@@ -105,5 +104,4 @@ class Job(Executable):
         self.tasks = [Assemble(self.exec_id, self.parts), Finish(self.exec_id)]
 
     def mark_done_in_db(self):
-        with CursorFromConnectionPool() as cursor:
-            cursor.execute(f"UPDATE jobs SET job_done_stamp = Now() WHERE jobid = {self.db_id}")
+        pass

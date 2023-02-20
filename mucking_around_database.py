@@ -5,9 +5,8 @@ import datetime
 from Executable import *
 
 
-def main():
+def test_adding_all():
     execs_mock: dict = {}
-    Database.initialise(database="MES_testing", user="postgres", password="1234", host='localhost')
     with CursorFromConnectionPool() as cursor:
         cursor.execute('SELECT jobid FROM jobs')
         jobs = cursor.fetchall()
@@ -25,6 +24,17 @@ def main():
         execs_mock[new_job.exec_id] = new_job
 
     print(execs_mock.items())
+
+
+def test_qi():
+    with CursorFromConnectionPool() as cursor:
+        cursor.execute('SELECT confirm_result FROM inspection WHERE partid = %s', (14,))
+        print(cursor.fetchone()[0])
+
+
+def main():
+    Database.initialise(database="MES_testing", user="postgres", password="1234", host='localhost')
+    test_qi()
 
 
 if __name__ == '__main__':
