@@ -126,7 +126,7 @@ class Robot(Resource):
         :param rsrc_id: Resource id passed through the constructor.
         """
         super().__init__(rsrc_id)
-        self.state = "Ready"
+        self.state = "Default"
         self.states = ["Ready", "Busy", "Done"]
         self.ready_node = ""
         self.end_node = ""
@@ -168,4 +168,11 @@ class InspectionStation(Resource):
         :param rsrc_id:
         """
         super().__init__(rsrc_id)
-        self.states = ["ready", "busy", "done", "failed"]
+        self.states = ["Ready", "Busy", "Failed"]
+        self.state = "Ready"
+
+    def upon_task_completion(self) -> None:
+        self.state = "Ready"
+
+    def set_to_default_working_state(self):
+        self.state = "Busy"

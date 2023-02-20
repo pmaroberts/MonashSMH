@@ -1,5 +1,6 @@
 import time
 
+from DBInterface import DBInterface
 from ResourceManager import *
 from MES import MES
 import random

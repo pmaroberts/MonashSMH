@@ -1,3 +1,4 @@
+from DBInterface import DBInterface
 from MES import MES
 from Resource import *
 from Tickable import Tickable
@@ -198,23 +199,45 @@ class QIManager(ResourceManager):
             self.resources.append(InspectionStation(f"{self.rsrc_type}{i}"))
 
     def tick(self, mes: MES, clock: int):
-        """
-        Tick method for the QIManager. Basic Structure:
-        1. Get the station's state from the user (mimicking OPCUA)
-        2. If the station is ready, run the default ready action
-        3. If the station is busy, print what it is working on
-        4. If the station is done, print to console what is just finished/passed.
-        To do in the future: Add in ability for the parts to fail QI.
-        :param mes: the manufacturing execution system
-        :param clock: the current time
-        :return: None
-        """
         for station in self.resources:
-            station.get_state()
-            if station.state == 0:
+            if station.state == "Ready":
                 self.default_ready_action(station, mes, clock)
-            elif station.state == 1:
+            elif station.state == "Busy":
+                curr_task = mes.task_lookup(station.task_id)
+                curr_exec = curr_task.exec_id
                 print(f"Time: {clock}\t{station.rsrc_id} working on {station.task_id}")
-            elif station.state == 2:
-                mes.task_lookup(station.task_id).set_done(mes, clock)
-                print(f"Time: {clock}\t{station.rsrc_id} declares QI pass for {station.task_id}")
+                if self.check_db_result(mes.executables[curr_exec].db_id):
+                    station.upon_task_completion()
+                    mes.task_lookup(station.task_id).set_done(mes, clock)
+                    print(f"Time: {clock}\t{station.rsrc_id} is done {station.task_id}")
+
+    def check_db_result(self, part_db_id) -> bool:
+        passed_qi = DBInterface.check_qi(part_db_id)
+        if passed_qi is None:
+            return False
+        elif passed_qi:
+            return True
+        elif not passed_qi:
+            raise NotImplementedError("haven't built fails yet!!")
+
+    # def tick(self, mes: MES, clock: int):
+    #     """
+    #     Tick method for the QIManager. Basic Structure:
+    #     1. Get the station's state from the user (mimicking OPCUA)
+    #     2. If the station is ready, run the default ready action
+    #     3. If the station is busy, print what it is working on
+    #     4. If the station is done, print to console what is just finished/passed.
+    #     To do in the future: Add in ability for the parts to fail QI.
+    #     :param mes: the manufacturing execution system
+    #     :param clock: the current time
+    #     :return: None
+    #     """
+    #     for station in self.resources:
+    #         station.get_state()
+    #         if station.state == 0:
+    #             self.default_ready_action(station, mes, clock)
+    #         elif station.state == 1:
+    #             print(f"Time: {clock}\t{station.rsrc_id} working on {station.task_id}")
+    #         elif station.state == 2:
+    #             mes.task_lookup(station.task_id).set_done(mes, clock)
+    #             print(f"Time: {clock}\t{station.rsrc_id} declares QI pass for {station.task_id}")
