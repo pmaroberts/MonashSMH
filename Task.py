@@ -1,3 +1,4 @@
+from DBInterface import DBInterface
 from MES import MES
 from Tickable import Tickable
 
@@ -34,15 +35,13 @@ class Task(Tickable):
         """
         self.resources_needed: list[str] = []
         self.resources_used: list[str] = []
-        self.proc_time: int = proc_time
-        self.time_til_done: int = self.proc_time
         self.done: bool = False
         self.released: bool = False
         self.exec_id: str = exec_id
         self.task_id: str = ""
-        self.wait_time: int = 0
         self.start_stamp = None
         self.position = 0
+        self.filename = None
 
     def release(self, mes: MES, position: int):
         """
@@ -52,6 +51,7 @@ class Task(Tickable):
         :param position: the position in the executables task list
         :return: None
         """
+        self.set_filename(mes)
         self.released = True
         self.position = position
         self.task_id += str(self.position)
@@ -65,22 +65,16 @@ class Task(Tickable):
         :param clock: the current time
         :return: None
         """
-        dec_flag = True
+        can_start_flag = True
         # Do you have all the resources that you need?
         for rsrc_id in self.resources_needed:
             if self.task_id not in mes.resource_managers[rsrc_id].current():
-                dec_flag = False
+                can_start_flag = False
                 break
-        if dec_flag:
-            # If you have all the resources you need, you can decrement time_til_done
-            self.time_til_done -= 1
-
+        if can_start_flag:
             if not self.started():
                 self.start_stamp = clock
                 self.start_action(mes, clock)
-        elif self.released:
-            # If you don't have all the resources you need, but you are released, your wait time should increment.
-            self.wait_time += 1
 
     def set_id(self, action: str):
         """
@@ -137,6 +131,9 @@ class Task(Tickable):
         for rsrc_id in self.resources_used:
             mes.resource_release(rsrc_id)
 
+    def set_filename(self, mes: MES):
+        pass
+
 
 class RobotRequester:
     def __init__(self):
@@ -152,6 +149,11 @@ class Print(Task):
         super().__init__(exec_id, proc_time)
         self.resources_needed = ["printer"]  # Print task needs a printer
         self.set_id("print")
+
+    def set_filename(self, mes: MES):
+        my_db_id = mes.executables[self.exec_id].db_id
+        filename = DBInterface.filename_getter(my_db_id)
+        self.filename = filename
 
 
 class QI(Task, RobotRequester):
@@ -234,5 +236,3 @@ class Finish(Task, RobotRequester):
         self.set_id("finish")
         self.resources_needed = ["robot"]  # Finish needs a robot to store
         self.robot_prog = 10
-
-

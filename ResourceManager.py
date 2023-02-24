@@ -68,9 +68,9 @@ class ResourceManager(Tickable):
         """
         rsrc.task_id = self.grab_next(mes, clock)
         if rsrc.task_id is not None:
-            rsrc.set_to_default_working_state()
             new_task = mes.task_lookup(rsrc.task_id)
             new_task.resources_used.append(rsrc.rsrc_id)
+            rsrc.set_to_default_working_state(new_task.filename)
             print(f"Time: {clock}\t{rsrc.task_id} started on {rsrc.rsrc_id}")
 
     def current(self) -> list[str]:
@@ -100,6 +100,8 @@ class PrintManager(ResourceManager):
         for i in range(self.no_units):
             printer = Printer(f"{self.rsrc_type}{i}")
             printer.state_node = f"ns={11 + i};s=P{i + 1}d_State"
+            printer.file_node = f"ns={11 + i};s=P{i + 1}c_File"
+            printer.start_node = f"ns={11 + i};s=P{i + 1}c_Start"
             asyncio.get_event_loop().run_until_complete(OPCUA.set_data(printer.state_node, printer.state))
             self.resources.append(printer)
 

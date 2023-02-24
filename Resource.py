@@ -1,7 +1,4 @@
 import asyncio
-
-from asyncua import Client
-
 from OPCUAInterface import OPCUA
 
 
@@ -28,6 +25,11 @@ class Resource:
         self.states: list[str] = []
         self.rsrc_id = rsrc_id
         self.task_id = ""
+        self.ready_node = ""
+        self.end_node = ""
+        self.start_node = ""
+        self.prog_id_node = ""
+        self.prog_id = 69
 
     def get_state(self) -> None:
         """
@@ -69,8 +71,8 @@ class Resource:
         """
         pass
 
-    def set_to_default_working_state(self):
-        self.state = 1
+    def set_to_default_working_state(self, filename=""):
+        pass
 
 
 class Printer(Resource):
@@ -86,6 +88,7 @@ class Printer(Resource):
         """
         super().__init__(rsrc_id)
         self.state_node = ""
+        self.file_node = ""
         self.state = "Default"
 
         # self.states = ["ready", "printing", "finished printing", "bed empty, not ready"]
@@ -107,12 +110,14 @@ class Printer(Resource):
         asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.state_node, self.state))
 
     def get_state(self) -> None:
-        print(f"{self.rsrc_id} is in state {self.state}")
+        # print(f"{self.rsrc_id} is in state {self.state}")
         self.state = asyncio.get_event_loop().run_until_complete(OPCUA.get_data(self.state_node))
-        print(f"{self.rsrc_id} now in state {self.state}")
+        print(f"{self.rsrc_id} is in state {self.state}")
 
-    def set_to_default_working_state(self):
+    def set_to_default_working_state(self, filename=""):
         asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.state_node, "Printing"))
+        asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.file_node, filename))
+        asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.start_node, True))
 
 
 class Robot(Resource):
@@ -128,13 +133,8 @@ class Robot(Resource):
         super().__init__(rsrc_id)
         self.state = "Default"
         self.states = ["Ready", "Busy", "Done"]
-        self.ready_node = ""
-        self.end_node = ""
-        self.start_node = ""
-        self.prog_id_node = ""
-        self.prog_id = 69
 
-    def set_to_default_working_state(self):
+    def set_to_default_working_state(self, filename=""):
         # Use this method to set the program ID
         self.state = "Busy"
         asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.start_node, True))
@@ -143,7 +143,7 @@ class Robot(Resource):
         asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.end_node, False))
 
     def get_state(self) -> None:
-        print(f"{self.rsrc_id} is in state {self.state}")
+        # print(f"{self.rsrc_id} is in state {self.state}")
         ready = asyncio.get_event_loop().run_until_complete(OPCUA.get_data(self.ready_node))
         end = asyncio.get_event_loop().run_until_complete(OPCUA.get_data(self.end_node))
         if eval(ready):
@@ -151,7 +151,7 @@ class Robot(Resource):
         elif eval(end):
             self.state = "Done"
             asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.prog_id_node, self.prog_id))
-        print(f"{self.rsrc_id} is now in state {self.state}")
+        print(f"{self.rsrc_id} is in state {self.state}")
 
     def upon_task_completion(self) -> None:
         self.state = "Default"
@@ -174,5 +174,5 @@ class InspectionStation(Resource):
     def upon_task_completion(self) -> None:
         self.state = "Ready"
 
-    def set_to_default_working_state(self):
+    def set_to_default_working_state(self, filename=""):
         self.state = "Busy"

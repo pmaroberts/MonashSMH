@@ -1,7 +1,4 @@
 from database import *
-import urllib
-import psycopg2
-import datetime
 from Executable import *
 
 
@@ -32,9 +29,35 @@ def test_qi():
         print(cursor.fetchone()[0])
 
 
+def deletey_boi():
+    with CursorFromConnectionPool() as cursor:
+        # Clear all the old data
+        cursor.execute('DELETE FROM inspection; DELETE FROM part; DELETE FROM jobs; DELETE FROM orders;')
+
+
+def db_setup(no_parts=2):
+    deletey_boi()
+    with CursorFromConnectionPool() as cursor:
+        # Make an order
+        cursor.execute('INSERT INTO orders (order_date) VALUES (Now());')
+        cursor.execute('SELECT orderid FROM orders')
+
+        # Grab the orderid of the order we just made
+        orderid = int(cursor.fetchone()[0])
+        print(orderid)
+
+        cursor.execute('INSERT INTO jobs (orderid) VALUES (%s)', (orderid,))
+        cursor.execute('SELECT jobid FROM jobs')
+
+        jobid = int(cursor.fetchone()[0])
+
+        for i in range(no_parts):
+            cursor.execute('INSERT INTO part (jobid, gcode_file) VALUES (%s, %s)', (jobid, "bin MD MD.gcode"))
+
+
 def main():
     Database.initialise(database="MES_testing", user="postgres", password="1234", host='localhost')
-    test_qi()
+    db_setup()
 
 
 if __name__ == '__main__':

@@ -1,10 +1,8 @@
 import time
-
-from DBInterface import DBInterface
-from ResourceManager import *
+from MESInjector import MESInjector
+from mucking_around_gui import MESGUI
 from MES import MES
-import random
-import asyncio
+import os
 
 
 class MESTest:
@@ -16,20 +14,22 @@ class MESTest:
         self.mes = MES()
         self.rsrc()
         self.execs()
-        # self.execs(num_parts=10,
-        #            print_time_min=3,
-        #            print_time_max=12)
 
     def rsrc(self):
-        self.mes.resource_managers["printer"] = PrintManager(1)
-        self.mes.resource_managers["robot"] = RobotManager(1)
-        self.mes.resource_managers["qi"] = QIManager(1)
+        self.mes.resource_managers = MESInjector.rsrc_injector()
 
     def execs(self):
-        self.mes.executables = DBInterface.exec_injector().copy()
+        self.mes.executables = MESInjector.exec_injector().copy()
 
     def run(self, max_clock: int = 1000):
+        # Clear the console at the start
+        os.system('cls')
         for i in range(max_clock):
+            print(f"Time is now: {i}")
             self.mes.sys_tick(i)
             time.sleep(3)
-        # print(self.mes.report())
+            os.system('cls')
+
+    def run_gui(self):
+        gui = MESGUI(self.mes)
+        gui.run()

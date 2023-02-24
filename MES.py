@@ -1,7 +1,3 @@
-from Jeffrey_OPCUA import *
-import asyncio
-from database import CursorFromConnectionPool, Database
-
 
 class MES:
     """
@@ -26,7 +22,6 @@ class MES:
         :param clock: Integer to represent where time is up to
         :return: None
         """
-        # print(f"\t\t\t CLOCK IS {clock}")
         # Looping the executables and their tasks
         for executable in self.executables.values():
             executable.tick(self, clock)
@@ -47,6 +42,11 @@ class MES:
         self.resource_managers[rsrc_id].queue.append(task_id)
 
     def resource_release(self, rsrc_id: str):
+        """
+        This method runs when a task is completed. It allows all of the resources used in that task to be released
+        :param rsrc_id: id of the resource the task has used
+        :return: None
+        """
         self.resource_lookup(rsrc_id).upon_task_completion()
 
     def task_lookup(self, task_id: str):
@@ -71,20 +71,3 @@ class MES:
                 if resource.rsrc_id == rsrc_id:
                     return resource
 
-    def report(self) -> str:
-        """
-        This method generates a simple report of what happened to each task/job in the MES.
-        :return: the report in string form
-        """
-        to_print = ""
-        for executable in self.executables.values():
-            wait_time = 0
-            per_cell_breakdown = ""
-            for task in executable.tasks:
-                name, task_wait = task.get_wait_time()
-                wait_time += task_wait
-                per_cell_breakdown += f"{name} waited for {task_wait} ticks.\t"
-
-            to_print += f"{executable.exec_id} finished at Time: {executable.done_stamp}. " \
-                        f"It waited for {wait_time} ticks in total: " + per_cell_breakdown + "\n"
-        return to_print

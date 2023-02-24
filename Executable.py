@@ -1,7 +1,5 @@
-from MES import MES
 from Task import *
 from Tickable import Tickable
-from database import CursorFromConnectionPool
 
 
 class Executable(Tickable):
@@ -76,12 +74,12 @@ class Part(Executable):
         """
         super().__init__(f"part{part_id}", part_id)
         self.part_no = part_no
-        # self.tasks = [Print(self.exec_id, print_time), Store(self.exec_id, "printer"), QI(self.exec_id),
-        #               Store(self.exec_id, "qi")]
-        self.tasks = [QI(self.exec_id)]
+        self.tasks = [Print(self.exec_id, print_time), Store(self.exec_id, "printer"), QI(self.exec_id),
+                      Store(self.exec_id, "qi")]
+        # self.tasks = [QI(self.exec_id)]
 
     def mark_done_in_db(self):
-        pass
+        DBInterface.mark_part_done(self.db_id)
 
 
 class Job(Executable):
