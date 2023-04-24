@@ -66,6 +66,11 @@ class MES:
             print(e)
 
     def resource_lookup(self, rsrc_id: str):
+        """
+        This method allows other classes to search for resources via their id
+        :param rsrc_id: resource id of the given resource
+        :return: the sought after resource object
+        """
         for manager in self.resource_managers.values():
             for resource in manager.resources:
                 if resource.rsrc_id == rsrc_id:

@@ -1,3 +1,8 @@
+"""
+File: database.py
+Author: Zijue Chen
+"""
+
 from psycopg2 import pool
 
 

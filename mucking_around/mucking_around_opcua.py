@@ -1,4 +1,3 @@
-from Jeffrey_OPCUA import *
 import asyncio
 from OPCUAInterface import *
 

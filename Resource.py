@@ -32,37 +32,14 @@ class Resource:
         self.prog_id = 69
 
     def get_state(self) -> None:
-        """
-        This method allows someone to mimic the OPCUA through the console.
-        :param opcua:
-        :return: None
-        """
-        # pass
-        print(f"\033[1;32m\nSetting state for {self.rsrc_id}. Current state is '{self.states[self.state]}'")
-        i: int = 0
-        for state in self.states:
-            print(f"To set state to {state} press {i}.")
-            i += 1
-        print(f"To leave in current state ({self.states[self.state]}), press enter.")
-        inputted_state = input("Enter your input here: ")
-        try:
-            int(inputted_state)
-        except ValueError:
-            print("\nState not changed.\033[1;00m")
-            return None
+        pass
 
-        if int(inputted_state) in range(len(self.states)):
-            self.state = int(inputted_state)
-        print(f"State changed to {inputted_state}\033[1;00m")
-        return None
-
-    def upon_task_completion(
-            self) -> None:  # Can inherit this method in order to create a cleaning cycle for printer etc.
+    def upon_task_completion(self) -> None:  # Can inherit this method in order to create a cleaning cycle for printer etc.
         """
         This method runs when a task completes. The default is to set the state back to ready.
         :return: None
         """
-        self.state = 0
+        pass
 
     def part_pickup_handler(self) -> None:
         """

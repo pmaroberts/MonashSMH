@@ -1,6 +1,6 @@
 import time
 from MESInjector import MESInjector
-from mucking_around_gui import MESGUI
+from mucking_around.mucking_around_gui import MESGUI
 from MES import MES
 import os
 
