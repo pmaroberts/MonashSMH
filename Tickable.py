@@ -1,5 +1,4 @@
 from MES import MES
-from Jeffrey_OPCUA import *
 
 
 class Tickable:
