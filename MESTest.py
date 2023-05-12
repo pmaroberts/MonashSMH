@@ -29,7 +29,3 @@ class MESTest:
             self.mes.sys_tick(i)
             time.sleep(3)
             os.system('cls')
-
-    def run_gui(self):
-        gui = MESGUI(self.mes)
-        gui.run()

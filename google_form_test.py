@@ -7,7 +7,11 @@ from datetime import datetime, timedelta
 from urllib.request import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from psycopg2 import sql
+
 from database import Database, CursorFromConnectionPool
+
+MINUTES_FOR_FRESH = 999999
 
 
 def main():
@@ -25,8 +29,7 @@ def main():
                                         material=get_text_answer(response['answers'], '1ed9e6f1'),
                                         response_code=response['responseId'],
                                         owner_name=get_text_answer(response['answers'], '7f367d19'),
-                                        issues=[issue['value'] for issue in
-                                                response['answers']['7b0a6168']['textAnswers']['answers']])
+                                        issues=issue_generator(response))
 
     # with open('test_output.json', 'w') as f:
     #     f.write(str(result))
@@ -38,9 +41,18 @@ def main():
     #     add_to_db(resp_value)
 
 
+def issue_generator(response):
+    try:
+        return [issue['value'] for issue in
+                response['answers']['7b0a6168']['textAnswers']['answers']]
+    except KeyError as e:
+        return None
+
+
+
 def add_to_db(some_text: str):
     with CursorFromConnectionPool() as cursor:
-        cursor.execute(f"INSERT INTO testing_table(some_text) VALUES ('{some_text}');")
+        cursor.execute(f"INSERT INTO testing_table(some_text) VALUES ('%s');", some_text)
 
 
 def not_duplicate(response_id: str):
@@ -66,12 +78,13 @@ def add_print_job_to_db(printer_name, start_time, end_time, colour, material, re
                                  (select owner_id from "PRINT_OWNER" where UPPER(owner_name) = UPPER('{owner_name}'))
                                  );
                         """)
-        for issue in issues:
-            cursor.execute(f"""
-                                insert into "PRINT_ISSUE" values (
-                                (select print_id from "PRINT_PART" where UPPER(form_code) = UPPER('{response_code}')),
-                                '{issue}');
-                            """)
+        if issues is not None:
+            for issue in issues:
+                cursor.execute(sql.SQL("""
+                                    insert into "PRINT_ISSUE" values (
+                                    (select print_id from "PRINT_PART" where UPPER(form_code) = UPPER({response_code})),
+                                    {issue});
+                                """).format(response_code=sql.Literal(response_code), issue=sql.Literal(issue)))
 
 
 def get_fresh_form_responses():
@@ -97,8 +110,7 @@ def get_fresh_form_responses():
     # Prints the responses of your specified form:
     form_id = '1qSkZVknek-KATVkRSKV8agM6CqvROLK4v0dsXQ-zPsk'  # For the print logging form
 
-    delta = 5
-    get_after = datetime.utcnow() - timedelta(minutes=delta)
+    get_after = datetime.utcnow() - timedelta(minutes=MINUTES_FOR_FRESH)
     result = service.forms().responses().list(formId=form_id,
                                               filter=f"timestamp > {get_after.strftime('%Y-%m-%dT%H:%M:%SZ')}").execute()
     print(result)
@@ -106,7 +118,10 @@ def get_fresh_form_responses():
 
 
 def get_text_answer(answers, question_id):
-    return answers[question_id]['textAnswers']['answers'][0]['value']
+    try:
+        return answers[question_id]['textAnswers']['answers'][0]['value']
+    except KeyError as e:
+        print(e)
 
 
 if __name__ == '__main__':
