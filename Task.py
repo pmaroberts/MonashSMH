@@ -39,7 +39,7 @@ class Task(Tickable):
         self.released: bool = False
         self.exec_id: str = exec_id
         self.task_id: str = ""
-        self.start_stamp = None
+        self.started = False
         self.position = 0
         self.filename = None
 
@@ -72,8 +72,8 @@ class Task(Tickable):
                 can_start_flag = False
                 break
         if can_start_flag:
-            if not self.started():
-                self.start_stamp = clock
+            if not self.started:
+                self.started = True
                 self.start_action(mes, clock)
 
     def set_id(self, action: str):
@@ -83,13 +83,6 @@ class Task(Tickable):
         :return: None
         """
         self.task_id = f"{self.exec_id}_{action}"
-
-    def started(self) -> bool:
-        """
-        Getter to determine whether a task has been started.
-        :return:
-        """
-        return self.start_stamp is not None
 
     def start_action(self, mes: MES, clock: int):
         """
@@ -116,16 +109,15 @@ class Task(Tickable):
         :return: None
         """
         self.done = True
-        self.release_resources(mes, clock)
+        self.release_resources(mes)
         # After releasing the resources, we run the tick method for the executables, to allow them to start a new task
         # immediately
         mes.executables[self.exec_id].tick(mes, clock)
 
-    def release_resources(self, mes: MES, clock: int):
+    def release_resources(self, mes: MES):
         """
         Asks the mes to release the resources for the resources that have been used.
         :param mes: manufacturing execution system
-        :param clock: current time
         :return: None
         """
         for rsrc_id in self.resources_used:
@@ -145,7 +137,7 @@ class Print(Task):
     Child of the Task class to represent the Print task.
     """
 
-    def __init__(self, exec_id, proc_time):
+    def __init__(self, exec_id, proc_time=10):
         super().__init__(exec_id, proc_time)
         self.resources_needed = ["printer"]  # Print task needs a printer
         self.set_id("print")
@@ -221,7 +213,7 @@ class Assemble(Task, RobotRequester):
         """
         for part_id in self.part_list:
             part = mes.executables[part_id]
-            if part.done_stamp == 0:
+            if part.done:
                 return
         super().release(mes, position)
 

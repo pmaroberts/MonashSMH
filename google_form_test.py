@@ -49,7 +49,6 @@ def issue_generator(response):
         return None
 
 
-
 def add_to_db(some_text: str):
     with CursorFromConnectionPool() as cursor:
         cursor.execute(f"INSERT INTO testing_table(some_text) VALUES ('%s');", some_text)

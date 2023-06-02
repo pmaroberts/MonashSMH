@@ -1,4 +1,3 @@
-
 class MES:
     """
     This is a class for representing the entire manufacturing execution system.
@@ -75,4 +74,3 @@ class MES:
             for resource in manager.resources:
                 if resource.rsrc_id == rsrc_id:
                     return resource
-

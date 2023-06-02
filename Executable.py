@@ -20,7 +20,7 @@ class Executable(Tickable):
         """
         self.tasks: list[Task] = []
         self.up_to: int = 0
-        self.done_stamp: int = 0
+        self.done = False
         self.exec_id = exec_id
         self.db_id = db_id
 
@@ -34,9 +34,8 @@ class Executable(Tickable):
         # If all tasks are complete, record the done timestamp and return (do not continue with the tick)
         # Note: Tick still runs on execs that are complete (potential improvement)
         if self.up_to == len(self.tasks):
-            if self.done_stamp == 0:
-                self.done_stamp = clock  # Executables are marked as done in the tick cycle after they finish
-                self.mark_done_in_db()
+            self.done = True
+            self.mark_done_in_db()
             return
         # If the current task is not released, release it.
         if not self.tasks[self.up_to].released:
@@ -64,7 +63,7 @@ class Part(Executable):
     This class is used to represent parts in the system.
     """
 
-    def __init__(self, part_id: int, part_no: int, print_time: int = 10):
+    def __init__(self, part_id: int, part_no: int):
         """
         Constructor for the Part class. The tasks associated with parts are pre-filled in the task list:
         Print, Quality Inspect and Store
@@ -74,7 +73,7 @@ class Part(Executable):
         """
         super().__init__(f"part{part_id}", part_id)
         self.part_no = part_no
-        self.tasks = [Print(self.exec_id, print_time), Store(self.exec_id, "printer"), QI(self.exec_id),
+        self.tasks = [Print(self.exec_id), Store(self.exec_id, "printer"), QI(self.exec_id),
                       Store(self.exec_id, "qi")]
         # self.tasks = [QI(self.exec_id)]
 

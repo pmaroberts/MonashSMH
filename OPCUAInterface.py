@@ -6,6 +6,7 @@ from asyncua import Client
 
 class OPCUA:
     address = 'oct.tpc://172.31.1.236:4840/server/'
+
     #  address = 'opc.tcp://localhost:4840/'
 
     @staticmethod
@@ -34,3 +35,5 @@ class OPCUA:
             await node.set_value(value, v_type)
         except TimeoutError:
             print("OPCUA Server connection problem")
+
+
