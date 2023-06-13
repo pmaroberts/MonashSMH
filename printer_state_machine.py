@@ -1,4 +1,5 @@
 import json
+import time
 
 import requests
 
@@ -11,8 +12,10 @@ def main():
         'Content-Type': 'application/json'
     }
 
-    response = requests.get(base_url + 'printer', headers=headers)
-    print(response.json())
+    while True:
+        response = requests.get(base_url + 'job', headers=headers)
+        print(response.json())
+        time.sleep(1)
     # filename = 'A.gcode'
     #
     # payload = {'command': 'select', 'print': 'false'}

@@ -103,7 +103,8 @@ class PrintManager(ResourceManager):
             printer.file_node = f"ns={11 + i};s=P{i + 1}c_File"
             printer.start_node = f"ns={11 + i};s=P{i + 1}c_Start"
             printer.part_removed_node = f"ns={11 + i};s=P{i + 1}c_PartRemoved"
-            asyncio.get_event_loop().run_until_complete(OPCUA.set_data(printer.state_node, printer.state))
+            printer.prog_id_node = f"ns={11 + i};s=P{i + 1}c_ProgID"
+            # asyncio.get_event_loop().run_until_complete(OPCUA.set_data(printer.state_node, printer.state))
             self.resources.append(printer)
 
     def tick(self, mes: MES, clock: int):
@@ -122,11 +123,11 @@ class PrintManager(ResourceManager):
         """
         for printer in self.resources:
             printer.get_state()  # This will change to a get state from the printer.
-            if printer.state == "Operational":
+            if printer.state == "operational":
                 self.default_ready_action(printer, mes, clock)
-            elif printer.state == "Printing":
+            elif printer.state == "printing":
                 print(f"Time: {clock}\t{printer.task_id} being printed on {printer.rsrc_id}")
-            elif printer.state == "Part on Bed":
+            elif printer.state == "part on bed":
                 mes.task_lookup(printer.task_id).set_done(mes, clock)
                 print(f"Time: {clock}\t{printer.task_id} waiting for robot pickup on {printer.rsrc_id}")
 

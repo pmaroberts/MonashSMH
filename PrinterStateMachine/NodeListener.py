@@ -13,7 +13,7 @@ class StartHandler(Handler):
     def datachange_notification(self, node, val, data):
         # print(f"{val} from starthandler")
         if val:
-            self.state_machine.heat()
+            self.state_machine.start_handler()
 
 
 class BedTempHandler(Handler):

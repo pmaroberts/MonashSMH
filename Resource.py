@@ -64,10 +64,13 @@ class Printer(Resource):
         The constructor sets the states for the printer
         """
         super().__init__(rsrc_id)
+        # The below node address values are set up in the ResourceManager class.
+        self.prog_id = 1  # This is the program id for printing
         self.state_node = ""
         self.file_node = ""
         self.part_removed_node = ""
         self.state = ""
+        self.prog_id_node = ""
 
     def part_pickup_handler(self) -> None:
         """
@@ -86,6 +89,7 @@ class Printer(Resource):
     def put_to_work(self, filename=""):
         # asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.state_node, "Printing"))
         asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.file_node, filename))
+        asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.prog_id_node, self.prog_id))
         asyncio.get_event_loop().run_until_complete(OPCUA.set_data(self.start_node, True))
 
 

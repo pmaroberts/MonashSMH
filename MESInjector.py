@@ -23,7 +23,7 @@ class MESInjector:
     def rsrc_injector() -> dict[str]:
         # noinspection PyDictCreation
         rsrcs: dict = {}
-        rsrcs["printer"] = PrintManager(2)
+        rsrcs["printer"] = PrintManager(1)
         rsrcs["robot"] = RobotManager(1)
         rsrcs["qi"] = QIManager(1)
         return rsrcs
