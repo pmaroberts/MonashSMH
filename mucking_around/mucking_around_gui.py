@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from MES import MES
+from SummerMES.MES import MES
 
 
 class MESGUI:

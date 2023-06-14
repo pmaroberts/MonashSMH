@@ -1,5 +1,5 @@
-from database import *
-from Executable import *
+from SummerMES.database import *
+from SummerMES.Executable import *
 
 
 def test_adding_all():

@@ -1,5 +1,5 @@
 import asyncio
-from OPCUAInterface import *
+from SummerMES.OPCUAInterface import *
 
 
 class Monkey:
