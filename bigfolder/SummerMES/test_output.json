@@ -1,0 +1,34 @@
+{
+  'sd': {
+    'ready': True
+  },
+  'state': {
+    'error': '',
+    'flags': {
+      'cancelling': False,
+      'closedOrError': False,
+      'error': False,
+      'finishing': False,
+      'operational': True,
+      'paused': False,
+      'pausing': False,
+      'printing': False,
+      'ready': True,
+      'resuming': False,
+      'sdReady': True
+    },
+    'text': 'Operational'
+  },
+  'temperature': {
+    'bed': {
+      'actual': 22.64,
+      'offset': 0,
+      'target': 0.0
+    },
+    'tool0': {
+      'actual': 27.69,
+      'offset': 0,
+      'target': 27.0
+    }
+  }
+}
