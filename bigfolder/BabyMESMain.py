@@ -1,3 +1,4 @@
+import signal
 import sys
 from threading import Thread
 
@@ -73,12 +74,7 @@ class StateHandler(Handler):
 def main():
     bmr = BabyMESRunner()
     bmr.listen_for_printers()
-
-    mes_thread = Thread(target=bmr.baby_mes.run, daemon=True)
-    input_gui_thread = Thread(target=bmr.run_input_gui, daemon=True)
-
-    mes_thread.start()
-    input_gui_thread.start()
+    bmr.run_input_gui()
 
 
 if __name__ == '__main__':
