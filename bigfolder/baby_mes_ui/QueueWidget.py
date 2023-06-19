@@ -1,9 +1,13 @@
 import sys
+
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QPushButton, QLabel, \
     QProgressBar
 
 
 class PrinterQueueWidget(QWidget):
+    send_queue_signal = pyqtSignal(list)
+
     def __init__(self):
         super().__init__()
         self.init_ui()
@@ -12,18 +16,16 @@ class PrinterQueueWidget(QWidget):
         self.layout = QVBoxLayout()
         self.queue_list = QListWidget()
 
-        # Add some sample jobs to the queue
-        for job in ['Job 1', 'Job 2', 'Job 3', 'Job 4']:
-            self.queue_list.addItem(job)
-
         # Create buttons for moving items
         self.up_button = QPushButton('Move Up')
         self.down_button = QPushButton('Move Down')
+
         self.submit_button = QPushButton('Submit')
 
         # Connect the buttons to the appropriate functions
         self.up_button.clicked.connect(self.move_item_up)
         self.down_button.clicked.connect(self.move_item_down)
+        self.submit_button.clicked.connect(self.emit_send_queue_signal)
 
         # Add the widgets to the layout
         self.layout.addWidget(self.queue_list)
@@ -48,8 +50,16 @@ class PrinterQueueWidget(QWidget):
             self.queue_list.insertItem(current_row + 1, item)
             self.queue_list.setCurrentRow(current_row + 1)
 
+    def emit_send_queue_signal(self):
+        to_send = []
+        for i in range(self.queue_list.count()):
+            to_send.append(self.queue_list.item(i).text())
+        self.send_queue_signal.emit(to_send)
 
-
+    def display_queue_list(self, queue: list[str]):
+        self.queue_list.clear()
+        for job in queue:
+            self.queue_list.addItem(job)
 
 
 if __name__ == '__main__':
@@ -57,7 +67,6 @@ if __name__ == '__main__':
     window = QWidget()
 
     queue_widget = PrinterQueueWidget()
-
 
     layout = QHBoxLayout()
     layout.addWidget(queue_widget)

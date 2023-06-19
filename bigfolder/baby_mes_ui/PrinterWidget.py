@@ -7,7 +7,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QProgressBar, QPushButton, QVBoxLayout, QSizePolicy, \
     QApplication
 
-from bigfolder.PrinterStateMachine.PrinterData import PrinterData
+from PrinterStateMachine.PrinterData import PrinterData
+from baby_mes_ui.QueueWidget import PrinterQueueWidget
 
 
 class PrinterDataWidget(QWidget):
@@ -56,9 +57,14 @@ class PrinterDataWidget(QWidget):
         if printer_state == "heating":
             target = self.p_data.node_value_get("bed_temp_target") + self.p_data.node_value_get("noz_temp_target")
             current = self.p_data.node_value_get("bed_temp_node") + self.p_data.node_value_get("noz_temp_node")
-            self.progress_bar.setValue(int(current / target * 100))
+            if target == 0:
+                self.progress_bar.setValue(0)
+            else:
+                self.progress_bar.setValue(int(current / target * 100))
         elif printer_state == "printing":
             self.progress_bar.setValue(int(self.p_data.node_value_get("job_progress_node")))
+        else:
+            self.progress_bar.setValue(0)
 
     def log_pickup(self):
         self.p_data.node_value_change("part_removed_node", True)
@@ -106,11 +112,15 @@ class PrinterWidget(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    window = QWidget()
+    window.setWindowTitle("Printer Monitoring")
 
-    window = PrinterWidget(1)
+    layout = QGridLayout()
+    layout.addWidget(PrinterQueueWidget())
+    layout.addWidget(PrinterWidget(1), 0, 1)
+    layout.addWidget(PrinterWidget(2), 0, 2)
+
+    window.setLayout(layout)
     window.show()
-
-    window2 = PrinterWidget(2)
-    window2.show()
 
     sys.exit(app.exec_())
